@@ -88,7 +88,7 @@ const sessionUpdate = {
   },
 };
 
-function SongRecommendation({ functionCallOutput, stopSession, startSession }) {
+function SongRecommendation({ functionCallOutput }) {
   const [audio] = useState(new Audio());
 
   useEffect(() => {
@@ -99,18 +99,7 @@ function SongRecommendation({ functionCallOutput, stopSession, startSession }) {
     let song;
     try {
       song = JSON.parse(functionCallOutput.arguments).song;
-      
-      // Stop the session before playing
-      stopSession();
-      
-      // Set up audio event handlers
       audio.src = song.filepath;
-      
-      audio.onended = () => {
-        // Restart session when audio ends
-        startSession();
-      };
-      
       audio.play();
     } catch (error) {
       console.error("Failed to play audio:", error);
@@ -119,9 +108,8 @@ function SongRecommendation({ functionCallOutput, stopSession, startSession }) {
     return () => {
       audio.pause();
       audio.src = "";
-      audio.onended = null;
     };
-  }, [functionCallOutput, audio, stopSession, startSession]);
+  }, [functionCallOutput, audio]);
 
   if (!functionCallOutput || !functionCallOutput.arguments) {
     return null;
@@ -161,8 +149,6 @@ export default function ToolPanel({
   isSessionActive,
   sendClientEvent,
   events,
-  stopSession,
-  startSession,
 }) {
   const [functionAdded, setFunctionAdded] = useState(false);
   const [functionCallOutput, setFunctionCallOutput] = useState(null);
@@ -248,11 +234,7 @@ export default function ToolPanel({
         <h2 className="text-lg font-bold">Song Recommendation Tool</h2>
         {isSessionActive ? (
           functionCallOutput ? (
-            <SongRecommendation 
-              functionCallOutput={functionCallOutput} 
-              stopSession={stopSession}
-              startSession={startSession}
-            />
+            <SongRecommendation functionCallOutput={functionCallOutput} />
           ) : (
             <p>Ask me to recommend a song...</p>
           )

@@ -184,8 +184,6 @@ export default function App() {
             sendTextMessage={sendTextMessage}
             events={events}
             isSessionActive={isSessionActive}
-            startSession={startSession}
-            stopSession={stopSession}
           />
         </section>
       </main>
