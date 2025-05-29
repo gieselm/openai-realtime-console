@@ -93,11 +93,19 @@ function SongRecommendation({ functionCallOutput }) {
   const [audio] = useState(new Audio());
 
   useEffect(() => {
+    // Start playing automatically when the component mounts
+    if (functionCallOutput?.arguments) {
+      const song = JSON.parse(functionCallOutput.arguments).song;
+      audio.src = song.filepath;
+      audio.play();
+      setIsPlaying(true);
+    }
+
     return () => {
       audio.pause();
       audio.src = "";
     };
-  }, []);
+  }, [functionCallOutput]);
 
   if (!functionCallOutput || !functionCallOutput.arguments) {
     return null;
