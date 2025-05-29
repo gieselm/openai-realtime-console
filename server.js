@@ -14,6 +14,9 @@ const vite = await createViteServer({
 });
 app.use(vite.middlewares);
 
+// Serve static files from the public directory
+app.use("/music", express.static("public/music"));
+
 // API route for token generation
 app.get("/token", async (req, res) => {
   try {
