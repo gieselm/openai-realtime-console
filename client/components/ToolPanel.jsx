@@ -51,8 +51,16 @@ const sessionUpdate = {
 };
 
 function SongRecommendations({ functionCallOutput }) {
-  const { originalSong, similarSongs } = JSON.parse(functionCallOutput.arguments);
-console.log("Registering song recommendation function...");
+  let parsedArgs;
+  try {
+    parsedArgs = JSON.parse(functionCallOutput.arguments);
+  } catch (error) {
+    console.error("Failed to parse function arguments:", error);
+    return <p className="text-red-500">Error displaying recommendations.</p>;
+  }
+
+  const { originalSong, similarSongs } = parsedArgs;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-blue-50 p-4 rounded-md">
@@ -62,10 +70,10 @@ console.log("Registering song recommendation function...");
       <div className="flex flex-col gap-2">
         <h3 className="font-bold">Similar Songs</h3>
         {similarSongs.map((song, index) => (
-          <div key={index} className="bg-gray-50 p-4 rounded-md">
+          <div key={index} className="bg-gray-50 p-4 rounded-md shadow-sm">
             <p className="font-bold">{song.title}</p>
             <p className="text-gray-600">by {song.artist}</p>
-            <p className="text-sm mt-2 text-gray-700">{song.reason}</p>
+            <p className="text-sm mt-2 text-gray-700 italic">{song.reason}</p>
           </div>
         ))}
       </div>
@@ -84,41 +92,43 @@ export default function ToolPanel({
   useEffect(() => {
     if (!events || events.length === 0) return;
 
-    const firstEvent = events[events.length - 1];
-    if (!functionAdded && firstEvent.type === "session.created") {
+    const latestEvent = events[events.length - 1];
+
+    if (!functionAdded && latestEvent.type === "session.created") {
       console.log("Registering song recommendation function...");
       sendClientEvent(sessionUpdate);
-      console.log("Function registration sent:", sessionUpdate);
       setFunctionAdded(true);
 
-      // Encourage music discussion
-      sendClientEvent({
-        type: "response.create",
-        response: {
-          instructions: "Tell me about a song you like, and I'll recommend similar ones!"
-        }
-      });
+      // Optional delay for UI smoothness
+      setTimeout(() => {
+        sendClientEvent({
+          type: "response.create",
+          response: {
+            instructions: "Tell me about a song you like, and I'll recommend similar ones!",
+          },
+        });
+      }, 500);
     }
 
-    // Log all events for debugging
-    //console.log("Received event:", events[0]);
+    console.log("Latest event received:", latestEvent);
 
-    const mostRecentEvent = events[events.length - 1];
-    if (mostRecentEvent?.type === "response.done" && mostRecentEvent.response?.output) {
-      console.log("Processing response output:", mostRecentEvent.response.output);
-      
-      mostRecentEvent.response.output.forEach((output) => {
-        if (output.type === "function_call" && output.name === "recommend_similar_songs") {
-          console.log("Song recommendation function called with args:", output.arguments);
-          alert("Song recommendations function was called! Check the recommendations below.");
+    if (
+      latestEvent?.type === "response.done" &&
+      latestEvent.response?.output
+    ) {
+      latestEvent.response.output.forEach((output) => {
+        if (
+          output.type === "function_call" &&
+          output.name === "recommend_similar_songs"
+        ) {
+          console.log("Song recommendation received:", output.arguments);
           setFunctionCallOutput(output);
-          
-          // Ask for feedback about recommendations
+
           sendClientEvent({
             type: "response.create",
             response: {
-              instructions: "Ask if they would like more recommendations or want to try another song."
-            }
+              instructions: "Would you like more recommendations or want to try another song?",
+            },
           });
         }
       });
