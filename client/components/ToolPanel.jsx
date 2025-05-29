@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 
 const functionDescription = `
-You are a music expert. When users mention songs or ask for music recommendations, call this function to suggest similar songs.
-Always provide recommendations when users talk about music or mention songs they like.
-Consider genre, style, mood, era, and musical elements when making recommendations.
+Call this function whenever a user mentions any song or asks about music recommendations.
+This function MUST be called when users discuss music or mention songs they enjoy.
 `;
 
 const sessionUpdate = {
@@ -16,7 +15,6 @@ const sessionUpdate = {
         description: functionDescription,
         parameters: {
           type: "object",
-          strict: true,
           properties: {
             originalSong: {
               type: "string",
@@ -48,8 +46,7 @@ const sessionUpdate = {
           required: ["originalSong", "similarSongs"]
         }
       }
-    ],
-    tool_choice: "auto"
+    ]
   }
 };
 
@@ -89,47 +86,43 @@ export default function ToolPanel({
 
     const firstEvent = events[events.length - 1];
     if (!functionAdded && firstEvent.type === "session.created") {
-      console.log("🎵 Registering song recommendation function...");
+      console.log("Registering song recommendation function...");
       sendClientEvent(sessionUpdate);
+      console.log("Function registration sent:", sessionUpdate);
       setFunctionAdded(true);
-      
-      // Send a follow-up message to encourage music discussion
-      setTimeout(() => {
-        sendClientEvent({
-          type: "response.create",
-          response: {
-            instructions: "Ask the user what kind of music they like or what song they'd like recommendations for."
-          }
-        });
-      }, 500);
-    }
 
-    const mostRecentEvent = events[0];
-    if (
-      mostRecentEvent.type === "response.done" &&
-      mostRecentEvent.response.output
-    ) {
-      mostRecentEvent.response.output.forEach((output) => {
-        if (
-          output.type === "function_call" &&
-          output.name === "recommend_similar_songs"
-        ) {
-          console.log("🎵 Song recommendation function called!", {
-            arguments: JSON.parse(output.arguments)
-          });
-          setFunctionCallOutput(output);
-          setTimeout(() => {
-            sendClientEvent({
-              type: "response.create",
-              response: {
-                instructions: "Ask if they would like to hear more recommendations or if they want to try another song."
-              },
-            });
-          }, 500);
+      // Encourage music discussion
+      sendClientEvent({
+        type: "response.create",
+        response: {
+          instructions: "Tell me about a song you like, and I'll recommend similar ones!"
         }
       });
     }
-  }, [events]);
+
+    // Log all events for debugging
+    console.log("Received event:", events[0]);
+
+    const mostRecentEvent = events[0];
+    if (mostRecentEvent?.type === "response.done" && mostRecentEvent.response?.output) {
+      console.log("Processing response output:", mostRecentEvent.response.output);
+      
+      mostRecentEvent.response.output.forEach((output) => {
+        if (output.type === "function_call" && output.name === "recommend_similar_songs") {
+          console.log("Song recommendation function called with args:", output.arguments);
+          setFunctionCallOutput(output);
+          
+          // Ask for feedback about recommendations
+          sendClientEvent({
+            type: "response.create",
+            response: {
+              instructions: "Ask if they would like more recommendations or want to try another song."
+            }
+          });
+        }
+      });
+    }
+  }, [events, functionAdded, sendClientEvent]);
 
   useEffect(() => {
     if (!isSessionActive) {
