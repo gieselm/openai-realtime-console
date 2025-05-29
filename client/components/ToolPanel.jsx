@@ -83,7 +83,7 @@ const sessionUpdate = {
               required: ["title", "artist", "filepath", "genre"]
             }
           },
-          required: ["mood", "song"],
+          required: ["song"],
         },
       },
     ],
