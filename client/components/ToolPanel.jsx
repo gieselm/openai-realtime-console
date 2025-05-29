@@ -40,7 +40,7 @@ const songDatabase = [
 ];
 
 const functionDescription = `
-Call this function when a user asks for a song recommendation. Returns song details including a filepath.
+Call this function when a user asks for a song to be played. Returns song details including a filepath.
 `;
 
 const sessionUpdate = {
