@@ -2,6 +2,29 @@ import { useState } from "react";
 import { CloudLightning, CloudOff, MessageSquare } from "react-feather";
 import Button from "./Button";
 
+function SessionStopped({ startSession }) {
+  const [isActivating, setIsActivating] = useState(false);
+
+  function handleStartSession() {
+    if (isActivating) return;
+
+    setIsActivating(true);
+    startSession();
+  }
+
+  return (
+    <div className="flex items-center justify-center w-full h-full">
+      <Button
+        onClick={handleStartSession}
+        className={isActivating ? "bg-gray-600" : "bg-red-600"}
+        icon={<CloudLightning height={16} />}
+      >
+        {isActivating ? "starting session..." : "start session"}
+      </Button>
+    </div>
+  );
+}
+
 function SessionActive({ stopSession, sendTextMessage }) {
   const [message, setMessage] = useState("");
 
@@ -43,6 +66,7 @@ function SessionActive({ stopSession, sendTextMessage }) {
 }
 
 export default function SessionControls({
+  startSession,
   stopSession,
   sendClientEvent,
   sendTextMessage,
@@ -59,9 +83,7 @@ export default function SessionControls({
           serverEvents={serverEvents}
         />
       ) : (
-        <div className="flex items-center justify-center w-full">
-          <p className="text-gray-500">Connecting...</p>
-        </div>
+        <SessionStopped startSession={startSession} />
       )}
     </div>
   );
