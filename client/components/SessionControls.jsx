@@ -61,7 +61,6 @@ export default function SessionControls({
       ) : (
         <div className="flex items-center justify-center w-full">
           <p className="text-gray-500">Connecting...</p>
-          
         </div>
       )}
     </div>

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 
 const functionDescription = `
-Call this function whenever a user mentions any song or asks about music recommendations.
-This function MUST be called when users discuss music or mention songs they enjoy.
+Call this function when a user asks for a color palette.
 `;
 
 const sessionUpdate = {
@@ -11,72 +10,55 @@ const sessionUpdate = {
     tools: [
       {
         type: "function",
-        name: "recommend_similar_songs",
+        name: "display_color_palette",
         description: functionDescription,
         parameters: {
           type: "object",
+          strict: true,
           properties: {
-            originalSong: {
+            theme: {
               type: "string",
-              description: "The original song the user mentioned",
+              description: "Description of the theme for the color scheme.",
             },
-            similarSongs: {
+            colors: {
               type: "array",
-              description: "Array of five similar song recommendations",
+              description: "Array of five hex color codes based on the theme.",
               items: {
-                type: "object",
-                properties: {
-                  title: {
-                    type: "string",
-                    description: "Title of the song",
-                  },
-                  artist: {
-                    type: "string",
-                    description: "Artist name",
-                  },
-                  reason: {
-                    type: "string",
-                    description: "Brief explanation of why this song is similar",
-                  }
-                },
-                required: ["title", "artist", "reason"]
-              }
-            }
+                type: "string",
+                description: "Hex color code",
+              },
+            },
           },
-          required: ["originalSong", "similarSongs"]
-        }
-      }
-    ]
-  }
+          required: ["theme", "colors"],
+        },
+      },
+    ],
+    tool_choice: "auto",
+  },
 };
 
-function SongRecommendations({ functionCallOutput }) {
-  let parsedArgs;
-  try {
-    parsedArgs = JSON.parse(functionCallOutput.arguments);
-  } catch (error) {
-    console.error("Failed to parse function arguments:", error);
-    return <p className="text-red-500">Error displaying recommendations.</p>;
-  }
+function FunctionCallOutput({ functionCallOutput }) {
+  const { theme, colors } = JSON.parse(functionCallOutput.arguments);
 
-  const { originalSong, similarSongs } = parsedArgs;
+  const colorBoxes = colors.map((color) => (
+    <div
+      key={color}
+      className="w-full h-16 rounded-md flex items-center justify-center border border-gray-200"
+      style={{ backgroundColor: color }}
+    >
+      <p className="text-sm font-bold text-black bg-slate-100 rounded-md p-2 border border-black">
+        {color}
+      </p>
+    </div>
+  ));
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="bg-blue-50 p-4 rounded-md">
-        <h3 className="font-bold mb-2">Original Song</h3>
-        <p>{originalSong}</p>
-      </div>
-      <div className="flex flex-col gap-2">
-        <h3 className="font-bold">Similar Songs</h3>
-        {similarSongs.map((song, index) => (
-          <div key={index} className="bg-gray-50 p-4 rounded-md shadow-sm">
-            <p className="font-bold">{song.title}</p>
-            <p className="text-gray-600">by {song.artist}</p>
-            <p className="text-sm mt-2 text-gray-700 italic">{song.reason}</p>
-          </div>
-        ))}
-      </div>
+    <div className="flex flex-col gap-2">
+      <p>Theme: {theme}</p>
+      {colorBoxes}
+      <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
+        {JSON.stringify(functionCallOutput, null, 2)}
+      </pre>
     </div>
   );
 }
@@ -92,48 +74,38 @@ export default function ToolPanel({
   useEffect(() => {
     if (!events || events.length === 0) return;
 
-    const latestEvent = events[events.length - 1];
-
-    if (!functionAdded && latestEvent.type === "session.created") {
-      console.log("Registering song recommendation function...");
+    const firstEvent = events[events.length - 1];
+    if (!functionAdded && firstEvent.type === "session.created") {
       sendClientEvent(sessionUpdate);
       setFunctionAdded(true);
-
-      // Optional delay for UI smoothness
-      setTimeout(() => {
-        sendClientEvent({
-          type: "response.create",
-          response: {
-            instructions: "Tell me about a song you like, and I'll recommend similar ones!",
-          },
-        });
-      }, 500);
     }
 
-    console.log("Latest event received:", latestEvent);
-
+    const mostRecentEvent = events[0];
     if (
-      latestEvent?.type === "response.done" &&
-      latestEvent.response?.output
+      mostRecentEvent.type === "response.done" &&
+      mostRecentEvent.response.output
     ) {
-      latestEvent.response.output.forEach((output) => {
+      mostRecentEvent.response.output.forEach((output) => {
         if (
           output.type === "function_call" &&
-          output.name === "recommend_similar_songs"
+          output.name === "display_color_palette"
         ) {
-          console.log("Song recommendation received:", output.arguments);
           setFunctionCallOutput(output);
-
-          sendClientEvent({
-            type: "response.create",
-            response: {
-              instructions: "Would you like more recommendations or want to try another song?",
-            },
-          });
+          setTimeout(() => {
+            sendClientEvent({
+              type: "response.create",
+              response: {
+                instructions: `
+                ask for feedback about the color palette - don't repeat 
+                the colors, just ask if they like the colors.
+              `,
+              },
+            });
+          }, 500);
         }
       });
     }
-  }, [events, functionAdded, sendClientEvent]);
+  }, [events]);
 
   useEffect(() => {
     if (!isSessionActive) {
@@ -145,15 +117,15 @@ export default function ToolPanel({
   return (
     <section className="h-full w-full flex flex-col gap-4">
       <div className="h-full bg-gray-50 rounded-md p-4">
-        <h2 className="text-lg font-bold">Song Recommendations</h2>
+        <h2 className="text-lg font-bold">Color Palette Tool</h2>
         {isSessionActive ? (
           functionCallOutput ? (
-            <SongRecommendations functionCallOutput={functionCallOutput} />
+            <FunctionCallOutput functionCallOutput={functionCallOutput} />
           ) : (
-            <p>Tell me a song you like, and I'll recommend similar ones...</p>
+            <p>Ask for advice on a color palette...</p>
           )
         ) : (
-          <p>Starting session...</p>
+          <p>Start the session to use this tool...</p>
         )}
       </div>
     </section>
