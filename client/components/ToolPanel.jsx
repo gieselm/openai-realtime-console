@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 const functionDescription = `
-Call this function when a user mentions a song to get a similar song recommendation.
+Call this function when a user asks for a color palette.
 `;
 
 const sessionUpdate = {
@@ -10,34 +10,26 @@ const sessionUpdate = {
     tools: [
       {
         type: "function",
-        name: "recommend_similar_song",
+        name: "display_color_palette",
         description: functionDescription,
         parameters: {
           type: "object",
           strict: true,
           properties: {
-            original_song: {
+            theme: {
               type: "string",
-              description: "The song that the user mentioned.",
+              description: "Description of the theme for the color scheme.",
             },
-            recommended_song: {
-              type: "string",
-              description: "A similar song recommendation.",
+            colors: {
+              type: "array",
+              description: "Array of five hex color codes based on the theme.",
+              items: {
+                type: "string",
+                description: "Hex color code",
+              },
             },
-            artist: {
-              type: "string",
-              description: "The artist of the recommended song.",
-            },
-            year: {
-              type: "string",
-              description: "The release year of the recommended song.",
-            },
-            reason: {
-              type: "string",
-              description: "Brief explanation of why this song is similar.",
-            }
           },
-          required: ["original_song", "recommended_song", "artist", "year", "reason"],
+          required: ["theme", "colors"],
         },
       },
     ],
@@ -46,16 +38,24 @@ const sessionUpdate = {
 };
 
 function FunctionCallOutput({ functionCallOutput }) {
-  const { original_song, recommended_song, artist, year, reason } = JSON.parse(functionCallOutput.arguments);
+  const { theme, colors } = JSON.parse(functionCallOutput.arguments);
+
+  const colorBoxes = colors.map((color) => (
+    <div
+      key={color}
+      className="w-full h-16 rounded-md flex items-center justify-center border border-gray-200"
+      style={{ backgroundColor: color }}
+    >
+      <p className="text-sm font-bold text-black bg-slate-100 rounded-md p-2 border border-black">
+        {color}
+      </p>
+    </div>
+  ));
 
   return (
-    <div className="flex flex-col gap-4 mt-4">
-      <div className="bg-white p-4 rounded-md shadow-sm">
-        <p className="text-gray-600 mb-2">Based on: {original_song}</p>
-        <h3 className="text-xl font-bold mb-1">{recommended_song}</h3>
-        <p className="text-gray-700">by {artist} ({year})</p>
-        <p className="text-gray-600 mt-2 italic">{reason}</p>
-      </div>
+    <div className="flex flex-col gap-2">
+      <p>Theme: {theme}</p>
+      {colorBoxes}
       <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
         {JSON.stringify(functionCallOutput, null, 2)}
       </pre>
@@ -88,7 +88,7 @@ export default function ToolPanel({
       mostRecentEvent.response.output.forEach((output) => {
         if (
           output.type === "function_call" &&
-          output.name === "recommend_similar_song"
+          output.name === "display_color_palette"
         ) {
           setFunctionCallOutput(output);
           setTimeout(() => {
@@ -96,7 +96,8 @@ export default function ToolPanel({
               type: "response.create",
               response: {
                 instructions: `
-                ask if they would like another song recommendation
+                ask for feedback about the color palette - don't repeat 
+                the colors, just ask if they like the colors.
               `,
               },
             });
@@ -116,12 +117,12 @@ export default function ToolPanel({
   return (
     <section className="h-full w-full flex flex-col gap-4">
       <div className="h-full bg-gray-50 rounded-md p-4">
-        <h2 className="text-lg font-bold">Song Recommendation Tool</h2>
+        <h2 className="text-lg font-bold">Color Palette Tool</h2>
         {isSessionActive ? (
           functionCallOutput ? (
             <FunctionCallOutput functionCallOutput={functionCallOutput} />
           ) : (
-            <p>Tell me a song you like, and I'll recommend a similar one...</p>
+            <p>Ask for advice on a color palette...</p>
           )
         ) : (
           <p>Start the session to use this tool...</p>
