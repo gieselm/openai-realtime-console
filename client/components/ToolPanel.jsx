@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
-// Predefined song collection with file paths
 const songDatabase = [
   {
     title: "Summer Breeze",
@@ -90,6 +89,7 @@ const sessionUpdate = {
 
 function SongRecommendation({ functionCallOutput }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [localFile, setLocalFile] = useState(null);
   const audioRef = useRef(null);
 
   if (!functionCallOutput || !functionCallOutput.arguments) {
@@ -119,6 +119,18 @@ function SongRecommendation({ functionCallOutput }) {
     }
   };
 
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setLocalFile(url);
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        audioRef.current.load();
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 mt-4">
       <div className="bg-white rounded-md p-4 shadow-sm border border-gray-200">
@@ -127,14 +139,38 @@ function SongRecommendation({ functionCallOutput }) {
           <p><span className="font-semibold">Title:</span> {song.title}</p>
           <p><span className="font-semibold">Artist:</span> {song.artist}</p>
           <p><span className="font-semibold">Genre:</span> {song.genre}</p>
-          <div className="mt-4">
-            <audio ref={audioRef} src={song.filepath} onEnded={() => setIsPlaying(false)} />
-            <button
-              onClick={handlePlayPause}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
-            >
-              {isPlaying ? "Pause" : "Play"}
-            </button>
+          
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select your own MP3 file to play:
+              </label>
+              <input
+                type="file"
+                accept="audio/mp3"
+                onChange={handleFileSelect}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <audio 
+                ref={audioRef}
+                src={localFile || song.filepath}
+                onEnded={() => setIsPlaying(false)}
+              />
+              <button
+                onClick={handlePlayPause}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+              >
+                {isPlaying ? "Pause" : "Play"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
