@@ -143,18 +143,6 @@ export default function App() {
     }
   }, [dataChannel]);
 
-  // Auto-start session when component mounts
-  useEffect(() => {
-    // Small delay to ensure everything is loaded
-    const timer = setTimeout(() => {
-      if (!isSessionActive && !peerConnection.current) {
-        startSession();
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <>
       <nav className="absolute top-0 left-0 right-0 h-16 flex items-center">
