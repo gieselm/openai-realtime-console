@@ -89,7 +89,21 @@ const sessionUpdate = {
 };
 
 function SongRecommendation({ functionCallOutput }) {
-  const { song } = JSON.parse(functionCallOutput.arguments);
+  if (!functionCallOutput || !functionCallOutput.arguments) {
+    return null;
+  }
+
+  let song;
+  try {
+    song = JSON.parse(functionCallOutput.arguments).song;
+  } catch (error) {
+    console.error("Failed to parse song data:", error);
+    return null;
+  }
+
+  if (!song) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-4 mt-4">
@@ -136,7 +150,39 @@ export default function ToolPanel({
           output.type === "function_call" &&
           output.name === "get_song_filepath"
         ) {
-          setFunctionCallOutput(output);
+          // Select a random song from the database
+          const randomSong = songDatabase[Math.floor(Math.random() * songDatabase.length)];
+          
+          // Create the tool output with the selected song
+          const toolOutput = {
+            type: "tool.output",
+            tool_call_id: output.tool_call_id,
+            output: JSON.stringify({
+              song: {
+                title: randomSong.title,
+                artist: randomSong.artist,
+                filepath: randomSong.filepath,
+                genre: randomSong.genre
+              }
+            })
+          };
+          
+          // Send the tool output event
+          sendClientEvent(toolOutput);
+          
+          // Update the function call output with the actual song data
+          setFunctionCallOutput({
+            ...output,
+            arguments: JSON.stringify({
+              song: {
+                title: randomSong.title,
+                artist: randomSong.artist,
+                filepath: randomSong.filepath,
+                genre: randomSong.genre
+              }
+            })
+          });
+
           setTimeout(() => {
             sendClientEvent({
               type: "response.create",
