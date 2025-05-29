@@ -12,28 +12,28 @@ const songDatabase = [
   {
     title: "Midnight Rain",
     artist: "Luna Eclipse",
-    filepath: "/music/midnight_rain.mp3",
+    filepath: "/music/Perc_30.wav",
     genre: "Lo-fi",
     mood: "relaxed"
   },
   {
     title: "Electric Dreams",
     artist: "Neon Pulse",
-    filepath: "/music/electric_dreams.mp3",
+    filepath: "/music/Perc_30.wav",
     genre: "Electronic",
     mood: "energetic"
   },
   {
     title: "Autumn Leaves",
     artist: "Acoustic Hearts",
-    filepath: "/music/autumn_leaves.mp3",
+    filepath: "/music/Perc_30.wav",
     genre: "Folk",
     mood: "melancholic"
   },
   {
     title: "Urban Rhythm",
     artist: "City Beats",
-    filepath: "/music/urban_rhythm.mp3",
+    filepath: "/music//music/Perc_30.wav",
     genre: "Hip Hop",
     mood: "confident"
   }
