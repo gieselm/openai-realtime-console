@@ -5,35 +5,35 @@ const songDatabase = [
   {
     title: "Summer Breeze",
     artist: "The Sunset Kings",
-    filepath: "/music/summer_breeze.mp3",
+    filepath: "/music/Perc_30.wav",
     genre: "Pop",
     mood: "happy"
   },
   {
     title: "Midnight Rain",
     artist: "Luna Eclipse",
-    filepath: "/music/midnight_rain.mp3",
+    filepath: "/music/Perc_30.wav",
     genre: "Lo-fi",
     mood: "relaxed"
   },
   {
     title: "Electric Dreams",
     artist: "Neon Pulse",
-    filepath: "/music/electric_dreams.mp3",
+    filepath: "/music/Perc_30.wav",
     genre: "Electronic",
     mood: "energetic"
   },
   {
     title: "Autumn Leaves",
     artist: "Acoustic Hearts",
-    filepath: "/music/autumn_leaves.mp3",
+    filepath: "/music/Perc_30.wav",
     genre: "Folk",
     mood: "melancholic"
   },
   {
     title: "Urban Rhythm",
     artist: "City Beats",
-    filepath: "/music/urban_rhythm.mp3",
+    filepath: "/music/Perc_30.wav",
     genre: "Hip Hop",
     mood: "confident"
   }
@@ -89,6 +89,28 @@ const sessionUpdate = {
 };
 
 function SongRecommendation({ functionCallOutput }) {
+  const [audio] = useState(new Audio());
+
+  useEffect(() => {
+    if (!functionCallOutput || !functionCallOutput.arguments) {
+      return;
+    }
+
+    let song;
+    try {
+      song = JSON.parse(functionCallOutput.arguments).song;
+      audio.src = song.filepath;
+      audio.play();
+    } catch (error) {
+      console.error("Failed to play audio:", error);
+    }
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+    };
+  }, [functionCallOutput, audio]);
+
   if (!functionCallOutput || !functionCallOutput.arguments) {
     return null;
   }
