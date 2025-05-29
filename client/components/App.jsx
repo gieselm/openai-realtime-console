@@ -143,6 +143,17 @@ export default function App() {
     }
   }, [dataChannel]);
 
+  // Auto-start session after 3 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isSessionActive) {
+        startSession();
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <>
       <nav className="absolute top-0 left-0 right-0 h-16 flex items-center">
