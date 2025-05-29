@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 
 const functionDescription = `
-Call this function when a user asks for song recommendations similar to a given song.
+You are a music expert. When users mention songs or ask for music recommendations, call this function to suggest similar songs.
+Always provide recommendations when users talk about music or mention songs they like.
+Consider genre, style, mood, era, and musical elements when making recommendations.
 `;
 
 const sessionUpdate = {
@@ -47,7 +49,10 @@ const sessionUpdate = {
         }
       }
     ],
-    tool_choice: "auto",
+    tool_choice: {
+      type: "function",
+      function: { name: "recommend_similar_songs" }
+    }
   }
 };
 
@@ -70,9 +75,6 @@ function SongRecommendations({ functionCallOutput }) {
           </div>
         ))}
       </div>
-      <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
-        {JSON.stringify(functionCallOutput, null, 2)}
-      </pre>
     </div>
   );
 }
@@ -109,10 +111,7 @@ export default function ToolPanel({
             sendClientEvent({
               type: "response.create",
               response: {
-                instructions: `
-                ask for feedback about the song recommendations - don't repeat 
-                the songs, just ask if they like the suggestions.
-              `,
+                instructions: "Ask if they would like to hear more recommendations or if they want to try another song."
               },
             });
           }, 500);
