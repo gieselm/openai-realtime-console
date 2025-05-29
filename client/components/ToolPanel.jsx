@@ -89,6 +89,9 @@ const sessionUpdate = {
 };
 
 function SongRecommendation({ functionCallOutput }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
   if (!functionCallOutput || !functionCallOutput.arguments) {
     return null;
   }
@@ -105,6 +108,17 @@ function SongRecommendation({ functionCallOutput }) {
     return null;
   }
 
+  const handlePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 mt-4">
       <div className="bg-white rounded-md p-4 shadow-sm border border-gray-200">
@@ -113,7 +127,15 @@ function SongRecommendation({ functionCallOutput }) {
           <p><span className="font-semibold">Title:</span> {song.title}</p>
           <p><span className="font-semibold">Artist:</span> {song.artist}</p>
           <p><span className="font-semibold">Genre:</span> {song.genre}</p>
-          <p><span className="font-semibold">File:</span> {song.filepath}</p>
+          <div className="mt-4">
+            <audio ref={audioRef} src={song.filepath} onEnded={() => setIsPlaying(false)} />
+            <button
+              onClick={handlePlayPause}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              {isPlaying ? "Pause" : "Play"}
+            </button>
+          </div>
         </div>
       </div>
       <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
