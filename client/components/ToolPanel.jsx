@@ -203,7 +203,25 @@ export default function ToolPanel({
   const [functionCallOutput, setFunctionCallOutput] = useState(null);
 
   const handleSongEnd = () => {
-    // Only send a new response.create event to continue the conversation
+    // Send a conversation item with the song details
+    const randomSong = songDatabase[Math.floor(Math.random() * songDatabase.length)];
+    sendClientEvent({
+      type: "conversation.item.create",
+      item: {
+        type: "function_output",
+        name: "get_song_filepath",
+        content: {
+          song: {
+            title: randomSong.title,
+            artist: randomSong.artist,
+            filepath: randomSong.filepath,
+            genre: randomSong.genre
+          }
+        }
+      }
+    });
+
+    // Create a new response to continue the conversation
     sendClientEvent({
       type: "response.create",
       response: {
@@ -234,22 +252,22 @@ export default function ToolPanel({
           // Select a random song from the database
           const randomSong = songDatabase[Math.floor(Math.random() * songDatabase.length)];
           
-          // Create the tool output with the selected song
-          const toolOutput = {
-            type: "tool.output",
-            tool_call_id: output.tool_call_id,
-            output: JSON.stringify({
-              song: {
-                title: randomSong.title,
-                artist: randomSong.artist,
-                filepath: randomSong.filepath,
-                genre: randomSong.genre
+          // Send the function output as a conversation item
+          sendClientEvent({
+            type: "conversation.item.create",
+            item: {
+              type: "function_output",
+              name: "get_song_filepath",
+              content: {
+                song: {
+                  title: randomSong.title,
+                  artist: randomSong.artist,
+                  filepath: randomSong.filepath,
+                  genre: randomSong.genre
+                }
               }
-            })
-          };
-          
-          // Send the tool output event
-          sendClientEvent(toolOutput);
+            }
+          });
           
           // Update the function call output with the actual song data
           setFunctionCallOutput({
@@ -268,10 +286,7 @@ export default function ToolPanel({
             sendClientEvent({
               type: "response.create",
               response: {
-                instructions: `
-                ask for feedback about the song recommendation - don't repeat 
-                the song details, just ask if they like the suggestion.
-              `,
+                instructions: "ask if they like the suggestion",
               },
             });
           }, 500);
