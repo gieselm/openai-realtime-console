@@ -5,7 +5,7 @@ const songDatabase = [
   {
     title: "Summer Breeze",
     artist: "The Sunset Kings",
-    filepath: "/music/summer_breeze.mp3",
+    filepath: "/music/Perc_30.wav",
     genre: "Pop",
     mood: "happy"
   },
