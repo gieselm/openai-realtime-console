@@ -88,7 +88,7 @@ const sessionUpdate = {
   },
 };
 
-function SongRecommendation({ functionCallOutput, onSongEnd, stopSession }) {
+function SongRecommendation({ functionCallOutput, onSongEnd }) {
   const [audioRef] = useState(() => new Audio());
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState(null);
@@ -106,6 +106,20 @@ function SongRecommendation({ functionCallOutput, onSongEnd, stopSession }) {
         audioRef.src = songData.song.filepath;
         
         audioRef.addEventListener('ended', onSongEnd);
+        
+        try {
+          await audioRef.play();
+          if (mounted) {
+            setIsPlaying(true);
+            setError(null);
+          }
+        } catch (err) {
+          if (mounted) {
+            console.error("Playback failed:", err);
+            setError("Failed to play audio automatically. Click play to try again.");
+            setIsPlaying(false);
+          }
+        }
       } catch (err) {
         if (mounted) {
           console.error("Failed to parse song data:", err);
@@ -132,8 +146,6 @@ function SongRecommendation({ functionCallOutput, onSongEnd, stopSession }) {
         audioRef.pause();
         setIsPlaying(false);
       } else {
-        // Disconnect session before playing
-        stopSession();
         await audioRef.play();
         setIsPlaying(true);
         setError(null);
@@ -186,7 +198,6 @@ export default function ToolPanel({
   isSessionActive,
   sendClientEvent,
   events,
-  stopSession
 }) {
   const [functionAdded, setFunctionAdded] = useState(false);
   const [functionCallOutput, setFunctionCallOutput] = useState(null);
@@ -285,7 +296,6 @@ export default function ToolPanel({
             <SongRecommendation 
               functionCallOutput={functionCallOutput} 
               onSongEnd={handleSongEnd}
-              stopSession={stopSession}
             />
           ) : (
             <p>Ask me to recommend a song...</p>
