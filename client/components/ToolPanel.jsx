@@ -105,7 +105,6 @@ function SongRecommendation({ functionCallOutput, onSongEnd }) {
 
         audioRef.src = songData.song.filepath;
         
-        // Add ended event listener
         audioRef.addEventListener('ended', onSongEnd);
         
         try {
@@ -204,13 +203,13 @@ export default function ToolPanel({
   const [functionCallOutput, setFunctionCallOutput] = useState(null);
 
   const handleSongEnd = () => {
-    // Reset the current session
-    setFunctionAdded(false);
-    setFunctionCallOutput(null);
-    
-    // Start a new session
-    sendClientEvent(sessionUpdate);
-    setFunctionAdded(true);
+    // Only send a new response.create event to continue the conversation
+    sendClientEvent({
+      type: "response.create",
+      response: {
+        instructions: "ask if they would like another song recommendation",
+      },
+    });
   };
 
   useEffect(() => {
