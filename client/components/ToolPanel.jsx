@@ -88,7 +88,7 @@ const sessionUpdate = {
   },
 };
 
-function SongRecommendation({ functionCallOutput, onSongEnd }) {
+function SongRecommendation({ functionCallOutput, onSongEnd, stopSession }) {
   const [audioRef] = useState(() => new Audio());
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState(null);
@@ -105,7 +105,15 @@ function SongRecommendation({ functionCallOutput, onSongEnd }) {
 
         audioRef.src = songData.song.filepath;
         
-        audioRef.addEventListener('ended', onSongEnd);
+        audioRef.addEventListener('ended', () => {
+          if (mounted) {
+            setIsPlaying(false);
+            onSongEnd();
+          }
+        });
+        
+        // Stop the session before playing
+        stopSession();
         
         try {
           await audioRef.play();
@@ -138,7 +146,7 @@ function SongRecommendation({ functionCallOutput, onSongEnd }) {
       setIsPlaying(false);
       setError(null);
     };
-  }, [functionCallOutput, audioRef, onSongEnd]);
+  }, [functionCallOutput, audioRef, onSongEnd, stopSession]);
 
   const togglePlayback = async () => {
     try {
@@ -146,6 +154,7 @@ function SongRecommendation({ functionCallOutput, onSongEnd }) {
         audioRef.pause();
         setIsPlaying(false);
       } else {
+        stopSession();
         await audioRef.play();
         setIsPlaying(true);
         setError(null);
@@ -198,36 +207,43 @@ export default function ToolPanel({
   isSessionActive,
   sendClientEvent,
   events,
+  startSession,
+  stopSession,
 }) {
   const [functionAdded, setFunctionAdded] = useState(false);
   const [functionCallOutput, setFunctionCallOutput] = useState(null);
 
   const handleSongEnd = () => {
-    // Send a conversation item with the song details
-    const randomSong = songDatabase[Math.floor(Math.random() * songDatabase.length)];
-    sendClientEvent({
-      type: "conversation.item.create",
-      item: {
-        type: "function_output",
-        name: "get_song_filepath",
-        content: {
-          song: {
-            title: randomSong.title,
-            artist: randomSong.artist,
-            filepath: randomSong.filepath,
-            genre: randomSong.genre
+    // Start a new session
+    startSession();
+    
+    setTimeout(() => {
+      // Send a conversation item with the song details
+      const randomSong = songDatabase[Math.floor(Math.random() * songDatabase.length)];
+      sendClientEvent({
+        type: "conversation.item.create",
+        item: {
+          type: "function_output",
+          name: "get_song_filepath",
+          content: {
+            song: {
+              title: randomSong.title,
+              artist: randomSong.artist,
+              filepath: randomSong.filepath,
+              genre: randomSong.genre
+            }
           }
         }
-      }
-    });
+      });
 
-    // Create a new response to continue the conversation
-    sendClientEvent({
-      type: "response.create",
-      response: {
-        instructions: "ask if they would like another song recommendation",
-      },
-    });
+      // Create a new response to continue the conversation
+      sendClientEvent({
+        type: "response.create",
+        response: {
+          instructions: "ask if they would like another song recommendation",
+        },
+      });
+    }, 1000); // Give the session time to start
   };
 
   useEffect(() => {
@@ -311,6 +327,7 @@ export default function ToolPanel({
             <SongRecommendation 
               functionCallOutput={functionCallOutput} 
               onSongEnd={handleSongEnd}
+              stopSession={stopSession}
             />
           ) : (
             <p>Ask me to recommend a song...</p>
