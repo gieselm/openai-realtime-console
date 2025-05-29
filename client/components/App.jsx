@@ -15,7 +15,7 @@ export default function App() {
     // Get a session token for OpenAI Realtime API
     const tokenResponse = await fetch("/token");
     const data = await tokenResponse.json();
-    const EPHEMERAL_KEY = data.client_secret;
+    const EPHEMERAL_KEY = data.client_secret.value;
 
     // Create a peer connection
     const pc = new RTCPeerConnection();
