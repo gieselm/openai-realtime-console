@@ -122,6 +122,13 @@ export default function App() {
     sendClientEvent({ type: "response.create" });
   }
 
+  // Auto-start session and send initial prompt
+  useEffect(() => {
+    if (!isSessionActive) {
+      startSession();
+    }
+  }, []);
+
   // Attach event listeners to the data channel when a new one is created
   useEffect(() => {
     if (dataChannel) {
@@ -139,6 +146,8 @@ export default function App() {
       dataChannel.addEventListener("open", () => {
         setIsSessionActive(true);
         setEvents([]);
+        // Send initial prompt when connection is established
+        sendTextMessage("Hi du bis roxy der roboter wolf");
       });
     }
   }, [dataChannel]);
