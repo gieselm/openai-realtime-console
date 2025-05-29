@@ -36,6 +36,21 @@ app.get("/token", async (req, res) => {
     );
 
     const data = await response.json();
+
+    if (!response.ok) {
+      console.error("OpenAI API error:", data);
+      return res.status(response.status).json({
+        error: data.error?.message || "Failed to generate token from OpenAI API"
+      });
+    }
+
+    if (!data.client_secret) {
+      console.error("Invalid response format from OpenAI API:", data);
+      return res.status(500).json({
+        error: "Invalid response format from OpenAI API - missing client_secret"
+      });
+    }
+
     res.json(data);
   } catch (error) {
     console.error("Token generation error:", error);
