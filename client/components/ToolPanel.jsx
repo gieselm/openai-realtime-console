@@ -101,9 +101,9 @@ export default function ToolPanel({
     }
 
     // Log all events for debugging
-    console.log("Received event:", events[0]);
+    //console.log("Received event:", events[0]);
 
-    const mostRecentEvent = events[0];
+    const mostRecentEvent = events[events.length - 1];
     if (mostRecentEvent?.type === "response.done" && mostRecentEvent.response?.output) {
       console.log("Processing response output:", mostRecentEvent.response.output);
       
