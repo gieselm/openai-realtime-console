@@ -40,7 +40,8 @@ const songDatabase = [
 ];
 
 const functionDescription = `
-Call this function when a user asks for a song to be played. Returns song details including a filepath.
+Call this function when a user asks for a song or music recommendation. Returns song details including a filepath.
+Do not ask for their mood first - just recommend a random song from the collection.
 `;
 
 const sessionUpdate = {
@@ -55,10 +56,6 @@ const sessionUpdate = {
           type: "object",
           strict: true,
           properties: {
-            mood: {
-              type: "string",
-              description: "The mood of the requested song",
-            },
             song: {
               type: "object",
               description: "Details about the recommended song",
@@ -92,13 +89,12 @@ const sessionUpdate = {
 };
 
 function SongRecommendation({ functionCallOutput }) {
-  const { mood, song } = JSON.parse(functionCallOutput.arguments);
+  const { song } = JSON.parse(functionCallOutput.arguments);
 
   return (
     <div className="flex flex-col gap-4 mt-4">
       <div className="bg-white rounded-md p-4 shadow-sm border border-gray-200">
         <h3 className="text-lg font-bold mb-2">Song Recommendation</h3>
-        <p className="text-gray-600 mb-4">Mood: {mood}</p>
         <div className="space-y-2">
           <p><span className="font-semibold">Title:</span> {song.title}</p>
           <p><span className="font-semibold">Artist:</span> {song.artist}</p>
@@ -172,7 +168,7 @@ export default function ToolPanel({
           functionCallOutput ? (
             <SongRecommendation functionCallOutput={functionCallOutput} />
           ) : (
-            <p>Ask for a song recommendation based on your mood...</p>
+            <p>Ask me to recommend a song...</p>
           )
         ) : (
           <p>Start the session to use this tool...</p>
