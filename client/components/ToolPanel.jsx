@@ -110,6 +110,7 @@ export default function ToolPanel({
       mostRecentEvent.response.output.forEach((output) => {
         if (output.type === "function_call" && output.name === "recommend_similar_songs") {
           console.log("Song recommendation function called with args:", output.arguments);
+          alert("Song recommendations function was called! Check the recommendations below.");
           setFunctionCallOutput(output);
           
           // Ask for feedback about recommendations
