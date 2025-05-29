@@ -49,10 +49,7 @@ const sessionUpdate = {
         }
       }
     ],
-    tool_choice: {
-      type: "function",
-      function: { name: "recommend_similar_songs" }
-    }
+    tool_choice: "auto"
   }
 };
 
@@ -95,6 +92,16 @@ export default function ToolPanel({
       console.log("🎵 Registering song recommendation function...");
       sendClientEvent(sessionUpdate);
       setFunctionAdded(true);
+      
+      // Send a follow-up message to encourage music discussion
+      setTimeout(() => {
+        sendClientEvent({
+          type: "response.create",
+          response: {
+            instructions: "Ask the user what kind of music they like or what song they'd like recommendations for."
+          }
+        });
+      }, 500);
     }
 
     const mostRecentEvent = events[0];
