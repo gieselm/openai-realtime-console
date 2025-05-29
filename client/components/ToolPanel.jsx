@@ -90,6 +90,7 @@ const sessionUpdate = {
 
 function SongRecommendation({ functionCallOutput }) {
   const [audio] = useState(new Audio());
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if (!functionCallOutput || !functionCallOutput.arguments) {
@@ -100,14 +101,26 @@ function SongRecommendation({ functionCallOutput }) {
     try {
       song = JSON.parse(functionCallOutput.arguments).song;
       audio.src = song.filepath;
-      audio.play();
+      
+      const playAudio = async () => {
+        try {
+          await audio.play();
+          setIsPlaying(true);
+        } catch (error) {
+          console.error("Failed to play audio:", error);
+          setIsPlaying(false);
+        }
+      };
+
+      playAudio();
     } catch (error) {
-      console.error("Failed to play audio:", error);
+      console.error("Failed to parse or play song:", error);
     }
 
     return () => {
       audio.pause();
       audio.src = "";
+      setIsPlaying(false);
     };
   }, [functionCallOutput, audio]);
 
@@ -127,6 +140,21 @@ function SongRecommendation({ functionCallOutput }) {
     return null;
   }
 
+  const togglePlayback = async () => {
+    try {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        await audio.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error("Failed to toggle audio playback:", error);
+      setIsPlaying(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 mt-4">
       <div className="bg-white rounded-md p-4 shadow-sm border border-gray-200">
@@ -135,7 +163,12 @@ function SongRecommendation({ functionCallOutput }) {
           <p><span className="font-semibold">Title:</span> {song.title}</p>
           <p><span className="font-semibold">Artist:</span> {song.artist}</p>
           <p><span className="font-semibold">Genre:</span> {song.genre}</p>
-          <p><span className="font-semibold">File:</span> {song.filepath}</p>
+          <button 
+            onClick={togglePlayback}
+            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            {isPlaying ? "Pause" : "Play"}
+          </button>
         </div>
       </div>
       <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
