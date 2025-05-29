@@ -1,7 +1,46 @@
 import { useEffect, useState } from "react";
 
+// Predefined song collection with file paths
+const songDatabase = [
+  {
+    title: "Summer Breeze",
+    artist: "The Sunset Kings",
+    filepath: "/music/summer_breeze.mp3",
+    genre: "Pop",
+    mood: "happy"
+  },
+  {
+    title: "Midnight Rain",
+    artist: "Luna Eclipse",
+    filepath: "/music/midnight_rain.mp3",
+    genre: "Lo-fi",
+    mood: "relaxed"
+  },
+  {
+    title: "Electric Dreams",
+    artist: "Neon Pulse",
+    filepath: "/music/electric_dreams.mp3",
+    genre: "Electronic",
+    mood: "energetic"
+  },
+  {
+    title: "Autumn Leaves",
+    artist: "Acoustic Hearts",
+    filepath: "/music/autumn_leaves.mp3",
+    genre: "Folk",
+    mood: "melancholic"
+  },
+  {
+    title: "Urban Rhythm",
+    artist: "City Beats",
+    filepath: "/music/urban_rhythm.mp3",
+    genre: "Hip Hop",
+    mood: "confident"
+  }
+];
+
 const functionDescription = `
-Call this function when a user asks for song recommendations.
+Call this function when a user asks for a song recommendation. Returns song details including a filepath.
 `;
 
 const sessionUpdate = {
@@ -10,7 +49,7 @@ const sessionUpdate = {
     tools: [
       {
         type: "function",
-        name: "recommend_song",
+        name: "get_song_filepath",
         description: functionDescription,
         parameters: {
           type: "object",
@@ -18,7 +57,7 @@ const sessionUpdate = {
           properties: {
             mood: {
               type: "string",
-              description: "The mood or vibe of the recommended song.",
+              description: "The mood of the requested song",
             },
             song: {
               type: "object",
@@ -32,16 +71,16 @@ const sessionUpdate = {
                   type: "string",
                   description: "The artist who performs the song"
                 },
-                year: {
-                  type: "number",
-                  description: "The year the song was released"
+                filepath: {
+                  type: "string",
+                  description: "The filepath where the song can be found"
                 },
                 genre: {
                   type: "string",
-                  description: "The primary genre of the song"
+                  description: "The genre of the song"
                 }
               },
-              required: ["title", "artist", "year", "genre"]
+              required: ["title", "artist", "filepath", "genre"]
             }
           },
           required: ["mood", "song"],
@@ -63,8 +102,8 @@ function SongRecommendation({ functionCallOutput }) {
         <div className="space-y-2">
           <p><span className="font-semibold">Title:</span> {song.title}</p>
           <p><span className="font-semibold">Artist:</span> {song.artist}</p>
-          <p><span className="font-semibold">Year:</span> {song.year}</p>
           <p><span className="font-semibold">Genre:</span> {song.genre}</p>
+          <p><span className="font-semibold">File:</span> {song.filepath}</p>
         </div>
       </div>
       <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
@@ -99,7 +138,7 @@ export default function ToolPanel({
       mostRecentEvent.response.output.forEach((output) => {
         if (
           output.type === "function_call" &&
-          output.name === "recommend_song"
+          output.name === "get_song_filepath"
         ) {
           setFunctionCallOutput(output);
           setTimeout(() => {
