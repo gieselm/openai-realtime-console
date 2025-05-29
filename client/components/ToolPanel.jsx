@@ -52,7 +52,7 @@ const sessionUpdate = {
 
 function SongRecommendations({ functionCallOutput }) {
   const { originalSong, similarSongs } = JSON.parse(functionCallOutput.arguments);
-
+console.log("Registering song recommendation function...");
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-blue-50 p-4 rounded-md">
