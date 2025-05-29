@@ -33,7 +33,7 @@ const songDatabase = [
   {
     title: "Urban Rhythm",
     artist: "City Beats",
-    filepath: "/music//music/Perc_30.wav",
+    filepath: "/music/Perc_30.wav",
     genre: "Hip Hop",
     mood: "confident"
   }
@@ -89,6 +89,16 @@ const sessionUpdate = {
 };
 
 function SongRecommendation({ functionCallOutput }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audio] = useState(new Audio());
+
+  useEffect(() => {
+    return () => {
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
   if (!functionCallOutput || !functionCallOutput.arguments) {
     return null;
   }
@@ -105,6 +115,16 @@ function SongRecommendation({ functionCallOutput }) {
     return null;
   }
 
+  const togglePlay = () => {
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.src = song.filepath;
+      audio.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
   return (
     <div className="flex flex-col gap-4 mt-4">
       <div className="bg-white rounded-md p-4 shadow-sm border border-gray-200">
@@ -113,7 +133,12 @@ function SongRecommendation({ functionCallOutput }) {
           <p><span className="font-semibold">Title:</span> {song.title}</p>
           <p><span className="font-semibold">Artist:</span> {song.artist}</p>
           <p><span className="font-semibold">Genre:</span> {song.genre}</p>
-          <p><span className="font-semibold">File:</span> {song.filepath}</p>
+          <button
+            onClick={togglePlay}
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            {isPlaying ? "Pause" : "Play"}
+          </button>
         </div>
       </div>
       <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
