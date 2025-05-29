@@ -92,6 +92,7 @@ export default function ToolPanel({
 
     const firstEvent = events[events.length - 1];
     if (!functionAdded && firstEvent.type === "session.created") {
+      console.log("🎵 Registering song recommendation function...");
       sendClientEvent(sessionUpdate);
       setFunctionAdded(true);
     }
@@ -106,6 +107,9 @@ export default function ToolPanel({
           output.type === "function_call" &&
           output.name === "recommend_similar_songs"
         ) {
+          console.log("🎵 Song recommendation function called!", {
+            arguments: JSON.parse(output.arguments)
+          });
           setFunctionCallOutput(output);
           setTimeout(() => {
             sendClientEvent({
