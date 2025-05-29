@@ -88,7 +88,7 @@ const sessionUpdate = {
   },
 };
 
-function SongRecommendation({ functionCallOutput }) {
+function SongRecommendation({ functionCallOutput, onSongEnd }) {
   const [audioRef] = useState(() => new Audio());
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState(null);
@@ -104,6 +104,9 @@ function SongRecommendation({ functionCallOutput }) {
         if (!songData?.song?.filepath) return;
 
         audioRef.src = songData.song.filepath;
+        
+        // Add ended event listener
+        audioRef.addEventListener('ended', onSongEnd);
         
         try {
           await audioRef.play();
@@ -130,12 +133,13 @@ function SongRecommendation({ functionCallOutput }) {
 
     return () => {
       mounted = false;
+      audioRef.removeEventListener('ended', onSongEnd);
       audioRef.pause();
       audioRef.src = "";
       setIsPlaying(false);
       setError(null);
     };
-  }, [functionCallOutput, audioRef]);
+  }, [functionCallOutput, audioRef, onSongEnd]);
 
   const togglePlayback = async () => {
     try {
@@ -198,6 +202,16 @@ export default function ToolPanel({
 }) {
   const [functionAdded, setFunctionAdded] = useState(false);
   const [functionCallOutput, setFunctionCallOutput] = useState(null);
+
+  const handleSongEnd = () => {
+    // Reset the current session
+    setFunctionAdded(false);
+    setFunctionCallOutput(null);
+    
+    // Start a new session
+    sendClientEvent(sessionUpdate);
+    setFunctionAdded(true);
+  };
 
   useEffect(() => {
     if (!events || events.length === 0) return;
@@ -280,7 +294,10 @@ export default function ToolPanel({
         <h2 className="text-lg font-bold">Song Recommendation Tool</h2>
         {isSessionActive ? (
           functionCallOutput ? (
-            <SongRecommendation functionCallOutput={functionCallOutput} />
+            <SongRecommendation 
+              functionCallOutput={functionCallOutput} 
+              onSongEnd={handleSongEnd}
+            />
           ) : (
             <p>Ask me to recommend a song...</p>
           )
